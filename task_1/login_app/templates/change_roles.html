@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+	<h1 class="title">
+		Flask смена ролей
+	</h1>
+	<h2 class="subtitle">
+		{% if current_user.is_authenticated %}
+			Hi {{ current_user.username }}!
+		{% endif %}
+	</h2>
+	{% for role in roles %}
+		<div>
+			{{ role.name }} - {{ role.description }}
+		</div>
+	{% endfor %}
+{% endblock %}

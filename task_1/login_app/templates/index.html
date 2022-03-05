@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+	<h1 class="title">
+		Flask приложение
+	</h1>
+	<h2 class="subtitle">
+		{% if current_user.is_authenticated %}
+			Привет, {{ current_user.username }}!
+		{% endif %}
+	</h2>
+	<div class="container">
+		{% for user in all_users %}
+			<p>
+				{{ user.username }} - {{ user.email }} - {{ user.roles[0] }}
+				{% if current_user.roles[0].full_role or current_user.roles[0].name == 'Редактор' or current_user.is_superuser %}
+					|
+					<a href="/change_user/{{ user.id }}" style="color: blue" id="change_user">Редактировать</a>
+					{% if not current_user.roles[0].name == 'Редактор' or current_user.is_superuser %}|
+						<a style="color: red" name="delete" data-id="{{ user.id }}">Удалить</a>
+					{% endif %}
+				{% endif %}
+			</p>
+		{% endfor %}
+		{% if current_user.roles[0].full_role or current_user.roles[0].name == 'Редактор' or current_user.is_superuser %}
+			<a style="color: green" id="add_user">Добавить пользователя</a>
+		{% endif %}
+	</div>
+{% endblock %}
