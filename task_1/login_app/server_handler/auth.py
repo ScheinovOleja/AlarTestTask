@@ -1,17 +1,20 @@
-from flask import Blueprint, current_app, render_template, redirect, url_for, request, flash
+from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_user, login_required, logout_user
 from werkzeug.security import generate_password_hash
 
 from login_app import login_manager
-from login_app.first.forms import LoginForm, SignupForm
-from login_app.database import db
-from login_app.first.models import MyUsers, Role
+from login_app.forms import LoginForm, SignupForm
+from login_app.models import MyUsers, Role, db
 
 auth = Blueprint('auth', __name__)
 
 
 @auth.cli.command("createsuperuser")
 def create_user():
+    """
+    Консольная команда Flask для создания суперпользователя. Используется в init.sh
+    :return:
+    """
     username = input('Введите имя пользователя: ')
     email = input('Введите email: ')
     while MyUsers.query.filter_by(email=email).first():
@@ -27,6 +30,10 @@ def create_user():
 
 @auth.cli.command("init")
 def create_user():
+    """
+    Консольная команда для создания ролей пользователей для разграничения их прав. Используется в init.sh
+    :return:
+    """
     role_1 = Role(name='Админ', description='Полный доступ', full_role=True)
     role_2 = Role(name='Редактор', description='Может редактировать', full_role=False)
     role_3 = Role(name='Пользователь', description='Может смотреть', full_role=False)
@@ -35,64 +42,87 @@ def create_user():
     print('Роли созданы')
 
 
-def log_error(*args, **kwargs):
-    current_app.logger.error(*args, **kwargs)
-
-
 @login_manager.user_loader
 def load_user(user_id):
+    """
+    Функция для "загрузки" пользователя в сессию при каждом обращении на сервер.
+    :param user_id:
+    :return:
+    """
     return MyUsers.query.get(int(user_id))
 
 
-@auth.route('/login')
+@auth.route('/login', methods=['GET'])
 def login():
+    """
+    Рендер страницы "логина"
+    :return:
+    """
     form = LoginForm()
     return render_template('auth/login.html', form=form)
 
 
 @auth.route('/login', methods=['POST'])
 def login_post():
+    """
+    Проверка правильности введенных данных и дальнейшее перенаправление пользователя.
+    :return:
+    """
     form = LoginForm()
     if form.validate_on_submit():
+        # Проверка существования пользователя
         user = db.session.query(MyUsers).filter(MyUsers.email == form.email.data).first()
         if user and user.check_password(form.password.data):
+            # Если пользователь существует и пароль введен верно, вход и редирект на главную страницу
             login_user(user, remember=form.remember.data)
             return redirect(url_for('main.index'))
-        flash("Invalid username/password", 'error')
-        return redirect(url_for('main.index'))
+        # Если неверно, вывод сообщения об ошибке и редирект на страницу "логина"
+        flash("Неверное имя пользователя/пароль!", 'error')
+        return redirect(url_for('auth.login'))
 
 
-@auth.route('/signup')
+@auth.route('/signup', methods=['GET'])
 def signup():
+    """
+    Рендер страницы регистрации.
+    :return:
+    """
     form = SignupForm()
     return render_template('auth/signup.html', form=form)
 
 
 @auth.route('/signup', methods=['POST'])
 def signup_post():
+    """
+    Регистрация нового пользователя.
+    :return:
+    """
     email = request.form.get('email')
     username = request.form.get('username')
     password = request.form.get('password')
-    user = MyUsers.query.filter_by(
-        email=email).first()  # if this returns a user, then the email already exists in database
+    user = MyUsers.query.filter_by(email=email).first()  # проверка существования в БД пользователя с таким же email
 
-    if user:  # if a user is found, we want to redirect back to signup page so user can try again
-        flash('Email address already exists')
+    if user:  # если пользователь найден, вывод ошибки и редирект на страницу регистрации
+        flash('Данный email уже зарегистрирован!')
         return redirect(url_for('auth.signup'))
 
-    # create a new user with the form data. Hash the password so the plaintext version isn't saved.
+    # Создание нового пользователя
     new_user = MyUsers(email=email, username=username, password=generate_password_hash(password, method='sha256'))
+    # Назначение пользователю роли "пользователь"
     new_user.roles = [db.session.query(Role).filter(Role.name == 'Пользователь').first()]
 
-    # add the new user to the database
+    # Добавление пользователя в БД и сохранение БД
     db.session.add(new_user)
     db.session.commit()
-
     return redirect(url_for('auth.login'))
 
 
 @auth.route("/logout")
 @login_required
 def logout():
+    """
+    Выход пользователя из сессии.
+    :return:
+    """
     logout_user()
     return redirect('login')

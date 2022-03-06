@@ -1,15 +1,7 @@
-from flask_login import UserMixin
+from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from login_app.database import db
-
-# class RolesUsers(db.Model):
-#     __tablename__ = 'roles_users'
-#     __table_args__ = {'extend_existing': True}
-#
-#     user_id = db.Column(db.Integer())
-#     roles_id = db.Column(db.Integer())
-
+db = SQLAlchemy()
 
 roles_users = db.Table(
     'roles_users',
@@ -19,11 +11,11 @@ roles_users = db.Table(
 )
 
 
-class MyUsers(db.Model, UserMixin):
+class MyUsers(db.Model):
     __tablename__ = 'users'
     __table_args__ = {'extend_existing': True}
 
-    id = db.Column(db.Integer(), primary_key=True)
+    id = db.Column(db.Integer(), primary_key=True, autoincrement=True)
     email = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(1000))
     username = db.Column(db.String(50))
@@ -45,14 +37,12 @@ class MyUsers(db.Model, UserMixin):
     def is_anonymous(self):
         return False
 
-    # Flask-Security
-    def has_role(self, *args):
-        return set(args).issubset({role.name for role in self.roles})
-
     def get_id(self):
         return self.id
 
-    # Required for administrative interface
+    def has_role(self, *args):
+        return set(args).issubset({role.name for role in self.roles})
+
     def __str__(self):
         return self.username
 
@@ -67,7 +57,7 @@ class Role(db.Model):
     __tablename__ = 'roles'
     __table_args__ = {'extend_existing': True}
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(255), unique=True)
     description = db.Column(db.String(255))
     full_role = db.Column(db.Boolean(False))

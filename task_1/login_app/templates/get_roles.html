@@ -2,11 +2,11 @@
 
 {% block content %}
 	<h1 class="title">
-		Flask смена ролей
+		Просмотр ролей
 	</h1>
 	<h2 class="subtitle">
 		{% if current_user.is_authenticated %}
-			Hi {{ current_user.username }}!
+			Хеј, {{ current_user.username }}!
 		{% endif %}
 	</h2>
 	{% for role in roles %}

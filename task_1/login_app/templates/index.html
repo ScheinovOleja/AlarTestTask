@@ -2,7 +2,7 @@
 
 {% block content %}
 	<h1 class="title">
-		Flask приложение
+		Тестовое задание для AlarStudios
 	</h1>
 	<h2 class="subtitle">
 		{% if current_user.is_authenticated %}
@@ -23,7 +23,7 @@
 			</p>
 		{% endfor %}
 		{% if current_user.roles[0].full_role or current_user.roles[0].name == 'Редактор' or current_user.is_superuser %}
-			<a style="color: green" id="add_user">Добавить пользователя</a>
+			<a style="color: green" id="add_user" href="{{ url_for('auth.signup') }}">Добавить пользователя</a>
 		{% endif %}
 	</div>
 {% endblock %}
