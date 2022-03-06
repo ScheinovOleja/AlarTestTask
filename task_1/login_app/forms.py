@@ -4,9 +4,6 @@ from wtforms import (
 )
 from wtforms.validators import DataRequired, Email
 
-from login_app import db
-from login_app.first.models import Role
-
 
 class LoginForm(FlaskForm):
     email = EmailField("Ваш Email", validators=[Email()], render_kw={'class': 'input is-large'})

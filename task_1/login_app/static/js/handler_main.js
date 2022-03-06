@@ -3,10 +3,10 @@ const add_link = document.getElementById('add_user')
 const csrfToken = $("input[name='csrfmiddlewaretoken']").val();
 
 
-function add_user(e) {
-    e.preventDefault()
-    alert('Удалить')
-}
+// function add_user(e) {
+//     e.preventDefault()
+//     alert('Удалить')
+// }
 
 
 function delete_user(e) {
@@ -30,8 +30,8 @@ function delete_user(e) {
     return true;
 }
 
-for (let link of delete_link){
+for (let link of delete_link) {
     link.addEventListener('click', delete_user)
 }
 
-add_link.addEventListener('click', add_user)
+// add_link.addEventListener('click', add_user)
